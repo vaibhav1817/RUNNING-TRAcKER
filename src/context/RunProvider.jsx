@@ -658,7 +658,6 @@ export const RunProvider = ({ children }) => {
         login,
         register,
         logout,
-        logout,
         deleteAccount,
         restoreRun,
         permanentlyDeleteRun,
