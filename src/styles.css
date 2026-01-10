@@ -1,0 +1,250 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+  --app-width: 450px;
+  --bg-color: #0f172a;
+  --card-bg: #1e293b;
+  --primary: #3b82f6;
+  --success: #22c55e;
+}
+
+body {
+  background-color: #020617;
+  background-image:
+    radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
+    radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 1) 0, transparent 50%);
+  background-size: 200% 200%;
+  animation: gradient-animation 15s ease infinite;
+  color: #fff;
+  overflow-x: hidden;
+}
+
+@keyframes gradient-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  /* Start from top */
+}
+
+/* APP SHELL: The "Phone" Container */
+.app-container {
+  width: 100%;
+  max-width: var(--app-width);
+  height: 100vh;
+  /* Changed from min-height to fixed height for better internal scrolling/sizing */
+  min-height: -webkit-fill-available;
+  /* iOS Safari Fix */
+  height: 100dvh;
+  /* Modern Browser Dynamic Viewport Fix */
+  background: rgba(15, 23, 42, 0.6);
+  /* Translucent */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+  /* Shadow for desktop */
+  overflow: hidden;
+  /* contain child absolute elements */
+}
+
+.page {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  padding-bottom: 100px;
+  /* Space for Nav */
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* CARDS */
+.card {
+  width: 100%;
+  background: rgba(30, 41, 59, 0.7);
+  /* Translucent Card */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  /* box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); */
+}
+
+/* BUTTONS */
+button {
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: transform 0.1s active;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+/* NAVIGATION */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  /* Center relative to viewport */
+  transform: translateX(-50%);
+  /* Correct centering */
+  width: 100%;
+  max-width: var(--app-width);
+  /* Constrain to App Width */
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  justify-content: space-around;
+  padding: 16px 0 24px 0;
+  /* Extra padding for iPhone Home Indicator */
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  z-index: 1000;
+}
+
+.nav-item {
+  color: #64748b;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.nav-item.active {
+  color: var(--primary);
+}
+
+/* MAP OVERRIDES */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 0 !important;
+  z-index: 1;
+}
+
+/* LEAFLET CUSTOM MARKER RESET */
+.leaflet-div-icon {
+  background: transparent;
+  border: none;
+}
+
+/* GPS PUCK */
+.gps-puck {
+  width: 20px;
+  height: 20px;
+  background-color: #3b82f6;
+  border: 3px solid white;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
+  position: relative;
+  /* Ensure it's visible */
+  display: block;
+}
+
+.gps-puck::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  background-color: rgba(59, 130, 246, 0.3);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+  z-index: -1;
+}
+
+@keyframes pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes blink {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* --- MOBILE SPECIFIC OVERRIDES --- */
+@media (max-width: 480px) {
+  body {
+    background: var(--bg-color);
+    /* Match app bg */
+  }
+
+  .app-container {
+    max-width: 100%;
+    box-shadow: none;
+  }
+
+  .bottom-nav {
+    max-width: 100%;
+  }
+
+  .card {
+    border-radius: 16px;
+  }
+}
+
+/* HIDE SCROLLBAR BUT ALLOW SCROLLING */
+::-webkit-scrollbar {
+  display: none;
+  width: 0px;
+  background: transparent;
+}
+
+* {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
