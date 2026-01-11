@@ -98,7 +98,15 @@ const PageWrapper = ({ children }) => (
     animate={{ opacity: 1, x: 0 }}
     exit={{ opacity: 0, x: -20 }}
     transition={{ duration: 0.2 }}
-    style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', flex: 1 }}
+    style={{
+      width: '100%',
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      flex: 1,
+      overflow: 'hidden', // Ensure wrapper doesn't scroll, only .page does
+      position: 'relative' // Ensure stability
+    }}
   >
     {children}
   </motion.div>

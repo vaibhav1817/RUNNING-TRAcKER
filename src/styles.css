@@ -40,6 +40,10 @@ body {
   }
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 #root {
   min-height: 100vh;
   display: flex;
@@ -53,9 +57,7 @@ body {
   width: 100%;
   max-width: var(--app-width);
   height: 100vh;
-  /* Changed from min-height to fixed height for better internal scrolling/sizing */
-  min-height: -webkit-fill-available;
-  /* iOS Safari Fix */
+  /* Fixed height for app shell */
   height: 100dvh;
   /* Modern Browser Dynamic Viewport Fix */
   background: rgba(15, 23, 42, 0.6);
@@ -82,6 +84,12 @@ body {
   /* Space for Nav */
   overflow-y: auto;
   overflow-x: hidden;
+  min-height: 0;
+  /* CRITICAL: Enables scrolling in nested flex containers */
+  -webkit-overflow-scrolling: touch;
+  /* iOS Momentum Scrolling */
+  overscroll-behavior-y: contain;
+  /* Prevent body scroll chaining */
 }
 
 /* CARDS */

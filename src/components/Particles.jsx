@@ -18,7 +18,7 @@ export default function Particles() {
 
         // Particle configuration
         const particlesArray = [];
-        const numberOfParticles = 150; // Increased density for lush look
+        const numberOfParticles = 50; // Optimized for performance
 
         class Particle {
             constructor() {
