@@ -51,11 +51,12 @@ export default function QuoteWidget() {
                 <Quote size={20} color="#3b82f6" style={{ opacity: 0.6, transform: 'scaleX(-1)' }} />
                 <p style={{
                     margin: 0,
-                    fontSize: '18px',
-                    fontFamily: '"Dancing Script", cursive',
+                    fontSize: '16px', // Slightly smaller for standard font
+                    fontFamily: 'inherit',
+                    fontStyle: 'italic',
                     color: '#e2e8f0',
-                    lineHeight: '1.4',
-                    fontWeight: '500'
+                    lineHeight: '1.5',
+                    fontWeight: '400'
                 }}>
                     {quote.text}
                 </p>
