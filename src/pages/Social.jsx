@@ -6,7 +6,7 @@ import { Search, UserPlus, UserCheck, Heart, MessageCircle, MapPin, Clock, Perso
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Social() {
-    const { token, history } = useRun();
+    const { token, history, refreshUser } = useRun();
     const [activeTab, setActiveTab] = useState('feed'); // 'feed' or 'search' or 'myposts'
     const [loading, setLoading] = useState(false);
 
@@ -136,6 +136,8 @@ export default function Social() {
 
         try {
             await fetch(`/api/auth/follow/${targetId}`, { method: 'PUT', headers: { 'x-auth-token': token } });
+            // Refresh global user state to update profile counts
+            if (typeof refreshUser === 'function') refreshUser();
         } catch (err) {
             console.error(err);
         }

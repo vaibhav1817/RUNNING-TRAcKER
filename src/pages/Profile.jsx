@@ -11,7 +11,7 @@ export default function Profile() {
     const [activeTab, setActiveTab] = useState('profile');
     const [trashRuns, setTrashRuns] = useState([]);
 
-    // Gear State
+    const [showFollowModal, setShowFollowModal] = useState(null); // 'followers' | 'following'
     const [newShoeName, setNewShoeName] = useState('');
     const [newShoeTarget, setNewShoeTarget] = useState(800);
 
@@ -229,14 +229,20 @@ export default function Profile() {
 
                 {/* Social Counts */}
                 <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', marginBottom: '12px' }}>
-                    <div style={{ textAlign: 'center' }}>
-                        <span style={{ color: 'white', fontWeight: 'bold' }}>{userSettings?.followers?.length || 0}</span>
-                        <span style={{ fontSize: '12px', color: '#94a3b8', marginLeft: '4px' }}>Followers</span>
-                    </div>
-                    <div style={{ textAlign: 'center' }}>
-                        <span style={{ color: 'white', fontWeight: 'bold' }}>{userSettings?.following?.length || 0}</span>
-                        <span style={{ fontSize: '12px', color: '#94a3b8', marginLeft: '4px' }}>Following</span>
-                    </div>
+                    <button
+                        onClick={() => setShowFollowModal('followers')}
+                        style={{ textAlign: 'center', background: 'none', border: 'none', cursor: 'pointer' }}
+                    >
+                        <span style={{ color: 'white', fontWeight: 'bold', fontSize: '18px', display: 'block' }}>{userSettings?.followers?.length || 0}</span>
+                        <span style={{ fontSize: '12px', color: '#94a3b8' }}>Followers</span>
+                    </button>
+                    <button
+                        onClick={() => setShowFollowModal('following')}
+                        style={{ textAlign: 'center', background: 'none', border: 'none', cursor: 'pointer' }}
+                    >
+                        <span style={{ color: 'white', fontWeight: 'bold', fontSize: '18px', display: 'block' }}>{userSettings?.following?.length || 0}</span>
+                        <span style={{ fontSize: '12px', color: '#94a3b8' }}>Following</span>
+                    </button>
                 </div>
 
                 <p style={{ color: levelColor, fontSize: '14px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
@@ -727,6 +733,57 @@ export default function Profile() {
                 )
                 }
             </AnimatePresence >
+            {/* FOLLOW LIST MODAL */}
+            <AnimatePresence>
+                {showFollowModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        style={{
+                            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 6000,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px'
+                        }}
+                        onClick={() => setShowFollowModal(null)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            style={{
+                                width: '100%', maxWidth: '360px', maxHeight: '60vh',
+                                background: '#1e293b', borderRadius: '16px', overflow: 'hidden',
+                                display: 'flex', flexDirection: 'column'
+                            }}
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div style={{ padding: '16px', borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <h3 style={{ margin: 0, color: 'white', fontSize: '16px' }}>
+                                    {showFollowModal === 'followers' ? 'Followers' : 'Following'}
+                                </h3>
+                                <button onClick={() => setShowFollowModal(null)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><X size={20} /></button>
+                            </div>
+
+                            <div style={{ overflowY: 'auto', padding: '16px' }}>
+                                {(userSettings?.[showFollowModal] && userSettings[showFollowModal].length > 0) ? (
+                                    userSettings[showFollowModal].map((u, i) => (
+                                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                                            <img
+                                                src={u.profile?.profilePicture || "https://api.dicebear.com/7.x/avataaars/svg?seed=" + (u.username || 'user')}
+                                                alt={u.username}
+                                                style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#334155' }}
+                                            />
+                                            <span style={{ color: 'white', fontWeight: 'bold' }}>{u.username}</span>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p style={{ textAlign: 'center', color: '#64748b', fontSize: '14px' }}>list is empty.</p>
+                                )}
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div >
     );
 }

@@ -94,6 +94,31 @@ export const RunProvider = ({ children }) => {
   const [loadingUser, setLoadingUser] = useState(true);
 
   // 🔹 API: FETCH HISTORY & USER DATA
+  // 🔹 API: FETCH HISTORY & USER DATA
+  const fetchUser = () => {
+    if (!token) return;
+    setLoadingUser(true);
+    fetch('/api/auth/user', { headers: { 'x-auth-token': token } })
+      .then(res => res.json())
+      .then(userData => {
+        console.log('Fetched User Data:', userData); // DEBUG
+        setUser(userData);
+        // Sync local settings with cloud profile
+        if (userData.profile) {
+          setUserSettings(prev => ({
+            ...prev,
+            name: userData.username, // Map username to name
+            ...userData.profile,
+            followers: userData.followers, // detailed list
+            following: userData.following  // detailed list
+          }));
+        }
+        if (userData.activePlan) setActivePlan(userData.activePlan);
+      })
+      .catch(err => console.error("Failed to fetch user:", err))
+      .finally(() => setLoadingUser(false));
+  };
+
   useEffect(() => {
     if (token) {
       // Fetch Runs
@@ -102,24 +127,8 @@ export const RunProvider = ({ children }) => {
         .then(data => setHistory(data))
         .catch(err => console.error("Failed to fetch runs:", err));
 
-      // Fetch User Data
-      fetch('/api/auth/user', { headers: { 'x-auth-token': token } })
-        .then(res => res.json())
-        .then(userData => {
-          console.log('Fetched User Data:', userData); // DEBUG
-          setUser(userData);
-          // Sync local settings with cloud profile
-          if (userData.profile) {
-            setUserSettings(prev => ({
-              ...prev,
-              name: userData.username, // Map username to name
-              ...userData.profile
-            }));
-          }
-          if (userData.activePlan) setActivePlan(userData.activePlan);
-        })
-        .catch(err => console.error("Failed to fetch user:", err))
-        .finally(() => setLoadingUser(false));
+      // Fetch User
+      fetchUser();
     } else {
       setHistory([]);
       setUser(null);
@@ -661,7 +670,8 @@ export const RunProvider = ({ children }) => {
         deleteAccount,
         restoreRun,
         permanentlyDeleteRun,
-        fetchTrash
+        fetchTrash,
+        refreshUser: fetchUser
       }}
     >
       {children}
