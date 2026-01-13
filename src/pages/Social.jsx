@@ -4,6 +4,7 @@ import { formatTime } from "../utils/formatTime";
 import RunPathSVG from "../components/RunPathSVG";
 import { Search, UserPlus, UserCheck, Heart, MessageCircle, MapPin, Clock, PersonStanding, Plus, X, Map, Share2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import Avatar from "../components/Avatar";
 
 export default function Social() {
     const { token, history, refreshUser } = useRun();
@@ -270,11 +271,7 @@ export default function Social() {
                         {searchResults.map(user => (
                             <div key={user._id} className="card" style={{ padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                    <img
-                                        src={user.profilePicture || "https://api.dicebear.com/7.x/avataaars/svg?seed=" + user.username}
-                                        alt={user.username}
-                                        style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#334155' }}
-                                    />
+                                    <Avatar user={user} size={48} />
                                     <span style={{ color: 'white', fontWeight: 'bold', fontSize: '18px' }}>{user.username}</span>
                                 </div>
                                 <button
@@ -329,11 +326,7 @@ export default function Social() {
                                     {/* Header */}
                                     <div style={{ padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                            <img
-                                                src={run.user?.profile?.profilePicture || "https://api.dicebear.com/7.x/avataaars/svg?seed=" + (run.user?.username || 'user')}
-                                                alt={run.user?.username}
-                                                style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#334155' }}
-                                            />
+                                            <Avatar user={run.user} size={40} />
                                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                                                 <span style={{ color: 'white', fontSize: '15px', fontWeight: 'bold' }}>{run.user?.username || 'Runner'}</span>
                                                 <span style={{ color: '#94a3b8', fontSize: '12px' }}>

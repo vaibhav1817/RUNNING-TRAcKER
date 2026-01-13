@@ -1,12 +1,13 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRun } from "../context/RunProvider";
 import { Settings, Bell, Heart, Lock, User, Medal, ChevronRight, X, Download, Trash2, Save, Edit2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from "../utils/canvasUtils";
+import Avatar from "../components/Avatar";
 
 export default function Profile() {
-    const { history, userSettings, updateSettings, logout, deleteAccount, loadingUser, clearData, fetchTrash, restoreRun, permanentlyDeleteRun } = useRun();
+    const { history, userSettings, updateSettings, logout, deleteAccount, loadingUser, clearData, fetchTrash, restoreRun, permanentlyDeleteRun, refreshUser } = useRun();
     const [modalOpen, setModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('profile');
     const [trashRuns, setTrashRuns] = useState([]);
@@ -14,6 +15,11 @@ export default function Profile() {
     const [showFollowModal, setShowFollowModal] = useState(null); // 'followers' | 'following'
     const [newShoeName, setNewShoeName] = useState('');
     const [newShoeTarget, setNewShoeTarget] = useState(800);
+
+    // Refresh user data on mount to ensure counts are accurate
+    useEffect(() => {
+        if (refreshUser) refreshUser();
+    }, []);
 
     // Cropping State
     const [cropSrc, setCropSrc] = useState(null);
@@ -768,11 +774,7 @@ export default function Profile() {
                                 {(userSettings?.[showFollowModal] && userSettings[showFollowModal].length > 0) ? (
                                     userSettings[showFollowModal].map((u, i) => (
                                         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                                            <img
-                                                src={u.profile?.profilePicture || "https://api.dicebear.com/7.x/avataaars/svg?seed=" + (u.username || 'user')}
-                                                alt={u.username}
-                                                style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#334155' }}
-                                            />
+                                            <Avatar user={u} size={40} />
                                             <span style={{ color: 'white', fontWeight: 'bold' }}>{u.username}</span>
                                         </div>
                                     ))
