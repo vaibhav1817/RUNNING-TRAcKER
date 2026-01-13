@@ -8,6 +8,9 @@ export const RunProvider = ({ children }) => {
   const [distance, setDistance] = useState(
     () => Number(localStorage.getItem("distance")) || 0
   );
+  const [calories, setCalories] = useState(
+    () => Number(localStorage.getItem("calories")) || 0
+  );
   const [status, setStatus] = useState(
     () => localStorage.getItem("status") || "idle"
   );
@@ -147,104 +150,118 @@ export const RunProvider = ({ children }) => {
     return () => clearInterval(intervalRef.current);
   }, [status]);
 
-  // 🔹 GEOLOCATION LOGIC (Always Watch)
+  // 🔹 GEOLOCATION LOGIC (Professional Tracking)
   useEffect(() => {
     if (navigator.geolocation) {
       watchIdRef.current = navigator.geolocation.watchPosition(
         (position) => {
           const { latitude, longitude, speed, accuracy } = position.coords;
-          const newPoint = { lat: latitude, lng: longitude, time: position.timestamp, accuracy };
+          // 1. Filter Noise
+          if (accuracy > 25) return; // Ignore poor GPS signals (>25m accuracy)
 
+          const newPoint = { lat: latitude, lng: longitude, time: position.timestamp, accuracy };
           setLocation(newPoint);
 
-          // Only record path and distance if running
           if (status === "running") {
-            // Speed Calculation (Instant Pace)
-            let calculatedSpeed = speed; // m/s from GPS (often null)
+            const now = position.timestamp;
+            let timeDelta = 0;
+            if (lastLocationRef.current) {
+              timeDelta = (now - lastLocationRef.current.time) / 1000; // seconds
+            }
 
-            // Fallback: Calculate Speed manually if GPS speed is null
-            if ((calculatedSpeed === null || calculatedSpeed === undefined) && lastLocationRef.current) {
-              const distKm = calculateDistance(
-                lastLocationRef.current.lat, lastLocationRef.current.lng,
-                newPoint.lat, newPoint.lng
-              );
-              const timeDiffSeconds = (newPoint.time - lastLocationRef.current.time) / 1000;
-
-              if (timeDiffSeconds > 0) {
-                calculatedSpeed = (distKm * 1000) / timeDiffSeconds; // m/s
+            // 2. Determine Real Speed (m/s)
+            // OS-provided 'speed' is Doppler-based and usually best. Fallback to positional delta.
+            let realSpeed = speed;
+            if (realSpeed === null || realSpeed < 0) {
+              // Fallback if OS doesn't provide speed
+              if (lastLocationRef.current && timeDelta > 0) {
+                const dist = calculateDistance(lastLocationRef.current.lat, lastLocationRef.current.lng, latitude, longitude);
+                realSpeed = (dist * 1000) / timeDelta;
+              } else {
+                realSpeed = 0;
               }
             }
 
-            // 🔹 SMOOTHED PACE CALCULATION
-            if (calculatedSpeed !== null && calculatedSpeed !== undefined && calculatedSpeed > 0) {
-              // Add to buffer (keep last 5 measurements)
-              lastSpeedsRef.current = [...lastSpeedsRef.current, calculatedSpeed].slice(-5);
+            // 3. Auto-Pause / Stop Detection (Threshold: 0.8 m/s ~= 2.8 km/h)
+            if (realSpeed < 0.8) {
+              realSpeed = 0; // Treat as stopped/standing
+            }
 
-              // Calculate Average Speed
-              const avgSpeed = lastSpeedsRef.current.reduce((a, b) => a + b, 0) / lastSpeedsRef.current.length;
+            // 4. Smooth Pace (Exponential Moving Average)
+            // Alpha = 0.2 means new data has 20% weight (smooths out jumps)
+            if (realSpeed > 0.1) {
+              const rawPaceMinKm = (1000 / realSpeed) / 60;
+              // Clamp outrageous values (e.g. GPS glitch saying you ran at 100mph)
+              const clampedPace = Math.min(Math.max(rawPaceMinKm, 2), 30);
 
-              if (avgSpeed > 0.1) { // Threshold lowered to 0.1 m/s (~0.36 km/h) for testing
-                const paceMinPerKm = (1000 / avgSpeed) / 60;
-                if (paceMinPerKm < 60) {
-                  setCurrentPace(paceMinPerKm);
+              // EMA Filter
+              /* 
+                 currentPace is in state, but we need a Ref for the smoothing algo 
+                 to avoid dependency loops in useEffect.
+                 We'll use lastSpeedsRef to store the 'SmoothedPace' purely.
+              */
+              const prevSmoothed = lastSpeedsRef.current[0] || clampedPace;
+              const alpha = 0.3;
+              const newSmoothed = (clampedPace * alpha) + (prevSmoothed * (1 - alpha));
+
+              lastSpeedsRef.current = [newSmoothed]; // Store single smoothed value
+              setCurrentPace(newSmoothed);
+            } else {
+              setCurrentPace(0);
+            }
+
+            // 5. Accumulate Distance & Calories
+            if (realSpeed > 0 && timeDelta > 0 && timeDelta < 30) { // Limit huge time jumps
+              // Distance = Speed * Time (Integration) is often smoother than summing zig-zags
+              const distIncrementKm = (realSpeed * timeDelta) / 1000;
+
+              setDistance(d => {
+                const newDist = d + distIncrementKm;
+                // Audio Feedback
+                if (Math.floor(newDist) > lastKmRef.current) {
+                  lastKmRef.current = Math.floor(newDist);
+                  const avgPace = timeRef.current > 0 ? (timeRef.current / 60 / newDist).toFixed(0) : 0;
+                  speak(`Distance ${lastKmRef.current} kilometers. Pace ${avgPace}.`);
                 }
-              } else {
-                setCurrentPace(0); // Idle
-              }
+                return newDist;
+              });
+
+              // Calories (MET Formula)
+              const kph = realSpeed * 3.6;
+              let met = 2.0; // Rest
+              if (kph < 4) met = 3.5; // Walk
+              else if (kph < 8) met = 7.0; // Jog
+              else if (kph < 11) met = 9.8; // Run
+              else if (kph < 14) met = 11.5; // Fast Run
+              else met = 13.5; // Sprint
+
+              const userWeight = userSettings.weight || 70;
+              const hours = timeDelta / 3600;
+              const calsBurned = met * userWeight * hours;
+
+              setCalories(c => c + calsBurned);
+
+              setRoutePath(prev => [...prev, newPoint]);
             }
 
             lastLocationRef.current = newPoint;
-
-            setRoutePath((prevPath) => {
-              if (prevPath.length > 0) {
-                const lastPoint = prevPath[prevPath.length - 1];
-                const distIncrement = calculateDistance(
-                  lastPoint.lat,
-                  lastPoint.lng,
-                  newPoint.lat,
-                  newPoint.lng
-                );
-
-                // Only add distance if movement is significant
-                if (distIncrement > 0.002) {
-                  setDistance((d) => {
-                    const newDist = d + distIncrement;
-
-                    // 🗣️ AUDIO FEEDBACK: Check for Kilomenter Split
-                    if (Math.floor(newDist) > lastKmRef.current) {
-                      const splitKm = Math.floor(newDist);
-                      lastKmRef.current = splitKm;
-                      // Calculate average pace for this run so far using ref
-                      const curTime = timeRef.current;
-                      const avgPace = curTime > 0 ? (curTime / 60 / newDist).toFixed(0) : 0;
-                      speak(`Distance ${splitKm} kilometers. Average pace ${avgPace} minutes per kilometer.`);
-                    }
-
-                    return newDist;
-                  });
-                  return [...prevPath, newPoint];
-                }
-                return prevPath;
-              } else {
-                return [...prevPath, newPoint];
-              }
-            });
+          } else {
+            // Not running: just update ref to prevent huge jump on resume
+            lastLocationRef.current = newPoint;
           }
         },
-        (error) => console.error("Error watching position:", error),
+        (error) => console.error("GPS Error:", error),
         { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
       );
     }
-
-    return () => {
-      if (watchIdRef.current) navigator.geolocation.clearWatch(watchIdRef.current);
-    };
-  }, [status]); // timeRef handles time access
+    return () => { if (watchIdRef.current) navigator.geolocation.clearWatch(watchIdRef.current); };
+  }, [status, userSettings.weight]);
 
   // 🔹 LOCAL STORAGE PERSISTENCE
   useEffect(() => {
     localStorage.setItem("time", time);
     localStorage.setItem("distance", distance);
+    localStorage.setItem("calories", calories);
     localStorage.setItem("status", status);
     // localStorage.setItem("history", JSON.stringify(history)); // History now in DB
     localStorage.setItem("userSettings", JSON.stringify(userSettings));
@@ -276,6 +293,7 @@ export const RunProvider = ({ children }) => {
       // Reset Logic
       setTime(0);
       setDistance(0);
+      setCalories(0);
       setRoutePath([]);
       lastKmRef.current = 0;
     }, 3000);
@@ -311,7 +329,7 @@ export const RunProvider = ({ children }) => {
       time,
       distance,
       pace: formatPace(time, distance),
-      calories: Math.round(distance * 60),
+      calories: Math.round(calories),
       date: new Date(),
       path: routePath
     };
@@ -374,6 +392,7 @@ export const RunProvider = ({ children }) => {
 
     setTime(0);
     setDistance(0);
+    setCalories(0);
     setRoutePath([]);
     setStatus("idle");
   };
@@ -639,6 +658,7 @@ export const RunProvider = ({ children }) => {
       value={{
         time,
         distance,
+        calories,
         status,
         isStarting, // <--- New State
         history,
