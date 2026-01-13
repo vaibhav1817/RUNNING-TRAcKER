@@ -166,7 +166,9 @@ export default function Home() {
       {/* Header */}
       <div style={{ width: '100%', marginBottom: '20px', paddingLeft: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 className="greeting" style={{ fontSize: '28px', marginBottom: '4px' }}>Good Morning</h1>
+          <h1 className="greeting" style={{ fontSize: '28px', marginBottom: '4px' }}>
+            {new Date().getHours() < 12 ? "Good Morning" : new Date().getHours() < 18 ? "Good Afternoon" : "Good Evening"}
+          </h1>
           <p className="date" style={{ fontSize: '16px', opacity: 0.6 }}>{dateString}</p>
         </div>
         <WeatherWidget />
@@ -288,7 +290,7 @@ export default function Home() {
               percentage={(time % 60) / 60 * 100}
               label={status === 'paused' ? 'PAUSED' : 'RUNNING'}
               value={formatTime(time)}
-              subValue={`${distance} km`}
+              subValue={`${distance.toFixed(2)} km`}
               extraInfo={
                 <>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>

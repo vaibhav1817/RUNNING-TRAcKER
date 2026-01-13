@@ -142,6 +142,7 @@ export default function Maps() {
         time,
         distance,
         ghostSettings, // Access ghost settings
+        currentPace, // Access instant pace
         startRun,
         pauseRun,
         resumeRun,
@@ -202,8 +203,10 @@ export default function Maps() {
     // Map Style State (Default: Dark)
     const [mapStyle, setMapStyle] = useState('dark');
 
-    // Helper to calculate pace (min/km)
+    // Helper to calculate pace (min/km) - Fallback / Average
     const calculatePace = () => {
+        if (status === 'running' && currentPace > 0) return currentPace.toFixed(2);
+
         if (!distance || distance === 0) return "0.00";
         const paceVal = time / 60 / distance; // min/km
         return paceVal.toFixed(2);
@@ -403,7 +406,7 @@ export default function Maps() {
                 <div style={{ width: '1px', height: '30px', background: 'rgba(255,255,255,0.2)' }}></div>
                 <div style={{ textAlign: 'center' }}>
                     <span style={{ fontSize: '12px', opacity: 0.7, display: 'block', letterSpacing: '0.5px' }}>KM</span>
-                    <span style={{ fontSize: '24px', fontWeight: '700', fontFamily: 'system-ui, sans-serif', fontVariantNumeric: 'tabular-nums' }}>{distance}</span>
+                    <span style={{ fontSize: '24px', fontWeight: '700', fontFamily: 'system-ui, sans-serif', fontVariantNumeric: 'tabular-nums' }}>{Number(distance).toFixed(2)}</span>
                 </div>
                 <div style={{ width: '1px', height: '30px', background: 'rgba(255,255,255,0.2)' }}></div>
                 <div style={{ textAlign: 'center' }}>

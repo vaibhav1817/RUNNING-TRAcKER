@@ -199,7 +199,7 @@ export const RunProvider = ({ children }) => {
                 // Only add distance if movement is significant
                 if (distIncrement > 0.002) {
                   setDistance((d) => {
-                    const newDist = +(d + distIncrement).toFixed(2);
+                    const newDist = d + distIncrement;
 
                     // 🗣️ AUDIO FEEDBACK: Check for Kilomenter Split
                     if (Math.floor(newDist) > lastKmRef.current) {
