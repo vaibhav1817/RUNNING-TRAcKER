@@ -3,6 +3,7 @@ import { useRun } from '../../context/RunProvider';
 import { useNavigate } from 'react-router-dom';
 import Loader from '../../components/Loader';
 import bgImage from './login background.jpg';
+import logo from '../../assets/logo.png';
 import { Eye, EyeOff } from 'lucide-react';
 
 export default function Login() {
@@ -52,6 +53,9 @@ export default function Login() {
                 backdropFilter: 'blur(10px)', // Glass effect
                 border: '1px solid rgba(255, 255, 255, 0.1)'
             }}>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+                    <img src={logo} alt="Running Tracker Logo" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
+                </div>
                 <h2 style={{ textAlign: 'center', marginBottom: '24px', color: 'white' }}>
                     {isRegister ? 'Create Account' : 'Welcome Back'}
                 </h2>
