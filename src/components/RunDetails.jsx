@@ -20,7 +20,8 @@ export default function RunDetails({ run, onClose, onDelete }) {
             <div className="modal-content" style={{
                 width: '100%',
                 maxWidth: '500px',
-                height: '85vh',
+                maxHeight: '85vh',
+                overflowY: 'auto',
                 backgroundColor: '#1e293b',
                 borderTopLeftRadius: '24px',
                 borderTopRightRadius: '24px',

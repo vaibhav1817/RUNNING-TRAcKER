@@ -211,6 +211,71 @@ router.put('/plan', auth, async (req, res) => {
     }
 });
 
+// @route   GET api/auth/search
+// @desc    Search for users
+// @access  Private
+router.get('/search', auth, async (req, res) => {
+    try {
+        const query = req.query.q;
+        if (!query) return res.json([]);
+
+        // Find users matching query (regex), exclude current user
+        const users = await User.find({
+            username: { $regex: query, $options: 'i' },
+            _id: { $ne: req.user.id }
+        }).select('username profile.profilePicture followers');
+
+        // Map to return isFollowing status
+        const currentUser = await User.findById(req.user.id);
+        const results = users.map(u => ({
+            _id: u._id,
+            username: u.username,
+            profilePicture: u.profile?.profilePicture,
+            isFollowing: currentUser.following.includes(u._id)
+        }));
+
+        res.json(results);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+// @route   PUT api/auth/follow/:id
+// @desc    Follow/Unfollow user
+// @access  Private
+router.put('/follow/:id', auth, async (req, res) => {
+    try {
+        const targetId = req.params.id;
+        if (targetId === req.user.id) return res.status(400).json({ message: "Cannot follow yourself" });
+
+        const currentUser = await User.findById(req.user.id);
+        const targetUser = await User.findById(targetId);
+
+        if (!targetUser) return res.status(404).json({ message: "User not found" });
+
+        // Check if already following
+        if (currentUser.following.includes(targetId)) {
+            // Unfollow
+            currentUser.following = currentUser.following.filter(id => id.toString() !== targetId);
+            targetUser.followers = targetUser.followers.filter(id => id.toString() !== req.user.id);
+            await currentUser.save();
+            await targetUser.save();
+            res.json({ message: "Unfollowed", isFollowing: false });
+        } else {
+            // Follow
+            currentUser.following.push(targetId);
+            targetUser.followers.push(req.user.id);
+            await currentUser.save();
+            await targetUser.save();
+            res.json({ message: "Followed", isFollowing: true });
+        }
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
 // @route   DELETE api/auth/delete
 // @desc    Delete user and all associated data
 // @access  Private
