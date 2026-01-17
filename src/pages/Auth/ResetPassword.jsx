@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Loader from '../../components/Loader';
+import logoImage from '../../logo-removebg-preview.png';
 
 export default function ResetPassword() {
     const { token } = useParams();
@@ -36,6 +37,19 @@ export default function ResetPassword() {
 
     return (
         <div className="page" style={{ justifyContent: 'center', padding: '20px' }}>
+            {/* Logo */}
+            <img
+                src={logoImage}
+                alt="Running Tracker Logo"
+                style={{
+                    width: '100px',
+                    height: '100px',
+                    objectFit: 'contain',
+                    marginBottom: '20px',
+                    filter: 'drop-shadow(0 4px 20px rgba(59, 130, 246, 0.3))'
+                }}
+            />
+
             <div className="card" style={{ maxWidth: '400px', width: '100%', padding: '32px' }}>
                 <h2 style={{ textAlign: 'center', marginBottom: '24px', color: 'white' }}>Set New Password</h2>
 

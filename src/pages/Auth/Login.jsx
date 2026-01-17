@@ -3,6 +3,7 @@ import { useRun } from '../../context/RunProvider';
 import { useNavigate } from 'react-router-dom';
 import Loader from '../../components/Loader';
 import bgImage from './login background.jpg';
+import logoImage from '../../logo-removebg-preview.png';
 import { Eye, EyeOff } from 'lucide-react';
 
 export default function Login() {
@@ -46,6 +47,19 @@ export default function Login() {
             backgroundPosition: 'center center',
             backgroundRepeat: 'no-repeat'
         }}>
+            {/* Logo */}
+            <img
+                src={logoImage}
+                alt="Running Tracker Logo"
+                style={{
+                    width: '120px',
+                    height: '120px',
+                    objectFit: 'contain',
+                    marginBottom: '20px',
+                    filter: 'drop-shadow(0 4px 20px rgba(59, 130, 246, 0.3))'
+                }}
+            />
+
             <div className="card" style={{
                 maxWidth: '400px', width: '100%', padding: '32px',
                 background: 'rgba(255, 255, 255, 0.05)', // Extremely transparent
