@@ -29,17 +29,17 @@ app.use('/api/users', userRoutes);
 
 const path = require('path');
 
-// ... (existing imports)
-
-// Routes
-// (Manage API routes above)
-
 // Serve Static Assets in Production
 if (process.env.NODE_ENV === 'production') {
     // Set static folder
     app.use(express.static(path.join(__dirname, '../dist')));
 
-    app.get(/.*/, (req, res) => {
+    // Handle React routing - return index.html for all non-API routes
+    app.get('*', (req, res) => {
+        // Don't serve index.html for API routes
+        if (req.path.startsWith('/api')) {
+            return res.status(404).json({ error: 'API endpoint not found' });
+        }
         res.sendFile(path.resolve(__dirname, '../dist', 'index.html'));
     });
 } else {

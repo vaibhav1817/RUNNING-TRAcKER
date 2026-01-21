@@ -1,3 +1,4 @@
+
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth'); // Optional: Is community public or private? Let's make it private/protected.
