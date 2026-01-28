@@ -37,16 +37,9 @@ if (process.env.NODE_ENV === 'production') {
     // Set static folder
     app.use(express.static(distPath));
 
-    // Root route - serve index.html (Express 5's {*path} doesn't match '/')
-    app.get('/', (req, res) => {
-        console.log('Serving index.html for root path');
-        res.sendFile(path.resolve(distPath, 'index.html'));
-    });
-
-    // Handle React routing - return index.html for all non-API routes
-    // Express 5 requires named parameters for wildcards: {*path}
-    app.get('/{*path}', (req, res) => {
-        // Don't serve index.html for API routes
+    // Fallback: serve index.html for any route not handled above (SPA support)
+    app.use((req, res, next) => {
+        // Skip API routes
         if (req.path.startsWith('/api')) {
             return res.status(404).json({ error: 'API endpoint not found' });
         }
