@@ -62,7 +62,7 @@ export default function WeeklyReport() {
     };
 
     return (
-        <div className="card" style={{ padding: '20px' }}>
+        <div className="card" style={{ padding: '20px', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
             <h3 style={{ marginBottom: "20px", display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '1.2rem' }}>📊</span> Weekly Analysis
             </h3>
@@ -70,8 +70,8 @@ export default function WeeklyReport() {
             {/* 1. Distance Volume (Bar Chart) - Best for visualizing accumulation */}
             <div style={{ marginBottom: '32px' }}>
                 <h4 style={{ fontSize: '0.9rem', color: '#94a3b8', marginBottom: '12px' }}>Distance (Volume)</h4>
-                <div style={{ height: '200px', width: '100%' }}>
-                    <ResponsiveContainer width="100%" height="100%">
+                <div style={{ height: '200px', width: '100%', minWidth: '280px' }}>
+                    <ResponsiveContainer width="100%" height={200}>
                         <BarChart data={chartData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} vertical={false} />
                             <XAxis
@@ -101,8 +101,8 @@ export default function WeeklyReport() {
             {/* 2. Pace Trends (Line Chart) - Best for visualizing performance intensity */}
             <div>
                 <h4 style={{ fontSize: '0.9rem', color: '#94a3b8', marginBottom: '12px' }}>Avg Pace (Consistency)</h4>
-                <div style={{ height: '200px', width: '100%' }}>
-                    <ResponsiveContainer width="100%" height="100%">
+                <div style={{ height: '200px', width: '100%', minWidth: '280px' }}>
+                    <ResponsiveContainer width="100%" height={200}>
                         <LineChart data={chartData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} vertical={false} />
                             <XAxis

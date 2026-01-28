@@ -256,3 +256,25 @@ button:active {
   scrollbar-width: none;
   /* Firefox */
 }
+
+/* --- DESKTOP SPECIFIC OVERRIDES --- */
+@media (min-width: 481px) {
+  .page {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .card {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  /* Ensure Recharts containers have proper dimensions */
+  .recharts-responsive-container {
+    min-width: 280px !important;
+  }
+}
