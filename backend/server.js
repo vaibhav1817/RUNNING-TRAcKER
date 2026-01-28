@@ -31,8 +31,17 @@ const path = require('path');
 
 // Serve Static Assets in Production
 if (process.env.NODE_ENV === 'production') {
+    const distPath = path.join(__dirname, '../dist');
+    console.log('Serving static files from:', distPath);
+
     // Set static folder
-    app.use(express.static(path.join(__dirname, '../dist')));
+    app.use(express.static(distPath));
+
+    // Root route - serve index.html (Express 5's {*path} doesn't match '/')
+    app.get('/', (req, res) => {
+        console.log('Serving index.html for root path');
+        res.sendFile(path.resolve(distPath, 'index.html'));
+    });
 
     // Handle React routing - return index.html for all non-API routes
     // Express 5 requires named parameters for wildcards: {*path}
@@ -41,7 +50,8 @@ if (process.env.NODE_ENV === 'production') {
         if (req.path.startsWith('/api')) {
             return res.status(404).json({ error: 'API endpoint not found' });
         }
-        res.sendFile(path.resolve(__dirname, '../dist', 'index.html'));
+        console.log('Serving index.html for path:', req.path);
+        res.sendFile(path.resolve(distPath, 'index.html'));
     });
 } else {
     app.get('/', (req, res) => {
