@@ -43,7 +43,16 @@ if (process.env.NODE_ENV === 'production') {
         if (req.path.startsWith('/api')) {
             return res.status(404).json({ error: 'API endpoint not found' });
         }
-        console.log('Serving index.html for path:', req.path);
+
+        // Skip requests for static files (they should be handled by express.static)
+        // If a file request reaches here, it means the file doesn't exist
+        const hasExtension = /\.[a-zA-Z0-9]+$/.test(req.path);
+        if (hasExtension) {
+            // Don't serve index.html for missing static files - return 404 instead
+            return res.status(404).send('File not found');
+        }
+
+        // For all other routes (SPA client-side routes), serve index.html
         res.sendFile(path.resolve(distPath, 'index.html'));
     });
 } else {
