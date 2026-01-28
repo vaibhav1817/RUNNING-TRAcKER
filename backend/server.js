@@ -35,7 +35,8 @@ if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../dist')));
 
     // Handle React routing - return index.html for all non-API routes
-    app.get('*', (req, res) => {
+    // Express 5 requires named parameters for wildcards: {*path}
+    app.get('/{*path}', (req, res) => {
         // Don't serve index.html for API routes
         if (req.path.startsWith('/api')) {
             return res.status(404).json({ error: 'API endpoint not found' });
