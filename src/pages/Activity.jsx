@@ -11,7 +11,8 @@ export default function Activity() {
 
   // Calculate Personal Records
   const personalRecords = useMemo(() => {
-    if (history.length === 0) return null;
+    // Guard: Ensure history is an array
+    if (!Array.isArray(history) || history.length === 0) return null;
 
     const distances = history.map(r => Number(r.distance) || 0);
     const longestVal = Math.max(...distances);
@@ -72,7 +73,7 @@ export default function Activity() {
       <h2 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#e2e8f0', width: '100%', maxWidth: '380px', marginBottom: '12px' }}>Recent Runs</h2>
 
       <div className="card" style={{ background: 'transparent', boxShadow: 'none', padding: 0 }}>
-        {history.length === 0 && (
+        {(!Array.isArray(history) || history.length === 0) && (
           <div style={{ textAlign: 'center', marginTop: '40px', opacity: 0.6 }}>
             <div style={{ marginBottom: '16px', fontSize: '48px' }}>🏃</div>
             <p style={{ fontSize: '18px', fontWeight: 'bold' }}>No runs yet</p>
@@ -81,7 +82,7 @@ export default function Activity() {
         )}
 
         <div className="history-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {history.slice().reverse().map((run) => (
+          {(Array.isArray(history) ? history : []).slice().reverse().map((run) => (
             <div
               key={run._id}
               onClick={() => setSelectedRun(run)}

@@ -127,8 +127,19 @@ export const RunProvider = ({ children }) => {
       // Fetch Runs
       fetch('/api/runs', { headers: { 'x-auth-token': token } })
         .then(res => res.json())
-        .then(data => setHistory(data))
-        .catch(err => console.error("Failed to fetch runs:", err));
+        .then(data => {
+          // Ensure data is an array before setting history
+          if (Array.isArray(data)) {
+            setHistory(data);
+          } else {
+            console.error("Invalid runs data received:", data);
+            setHistory([]);
+          }
+        })
+        .catch(err => {
+          console.error("Failed to fetch runs:", err);
+          setHistory([]);
+        });
 
       // Fetch User
       fetchUser();

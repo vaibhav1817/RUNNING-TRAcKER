@@ -29,11 +29,12 @@ export default function WeeklyReport() {
     const weekDays = getLast7Days();
 
     // 2. Aggregate history data
+    const safeHistory = Array.isArray(history) ? history : [];
     const chartData = weekDays.map((dayLabel) => {
         // Find runs for this day
         // Note: dayLabel is "Mon", "Tue" etc.
         // We need to match it against run.date, which is an ISO string or Date object
-        const run = history.find(h => {
+        const run = safeHistory.find(h => {
             if (!h.date) return false;
             const runDay = new Date(h.date).toLocaleDateString("en-US", { weekday: 'short' });
             return runDay === dayLabel;
