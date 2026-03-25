@@ -133,6 +133,7 @@ export const RunProvider = ({ children }) => {
   const distanceRef = useRef(distance);
   const caloriesRef = useRef(calories);
   const statusRef = useRef(status);
+  const routePathRef = useRef([]); // ✅ Keep routePath accessible in stopRun without closure issues
   const lastSpeedsRef = useRef([]); // 🔹 Smoothing Buffer for Pace
 
   // 🧮 Kalman Filter instance — persistent across GPS callbacks
@@ -143,6 +144,7 @@ export const RunProvider = ({ children }) => {
   useEffect(() => { distanceRef.current = distance; }, [distance]);
   useEffect(() => { caloriesRef.current = calories; }, [calories]);
   useEffect(() => { statusRef.current = status; }, [status]);
+  useEffect(() => { routePathRef.current = routePath; }, [routePath]);
 
   // 🔹 VOICE SETTINGS
   const [voiceEnabled, setVoiceEnabled] = useState(() => {
@@ -500,6 +502,24 @@ export const RunProvider = ({ children }) => {
     // Capture current values before resetting
     const finalDistance = distanceRef.current;
     const finalCalories = caloriesRef.current;
+    // Use ref for path — avoids stale React state closure
+    // Strip to only lat/lng — removes 'time' and 'accuracy' fields
+    // that aren't in the DB schema and can inflate payload size
+    const finalPath = routePathRef.current.map(p => ({ lat: p.lat, lng: p.lng }));
+
+    // ✅ Guard: don't save runs that are too short to be meaningful
+    if (finalTime < 5 || finalDistance < 0.001) {
+      console.warn("Run too short to save (time:", finalTime, "s, distance:", finalDistance, "km)");
+      // Still reset state cleanly
+      accumulatedTimeRef.current = 0;
+      runStartTimestampRef.current = null;
+      lastKmRef.current = 0;
+      lastSpeedsRef.current = [];
+      lastLocationRef.current = null;
+      routePathRef.current = [];
+      setTime(0); setDistance(0); setCalories(0); setRoutePath([]); setStatus("idle");
+      return;
+    }
 
     // 🔹 FORMAT PACE (MM:SS format)
     const formatPace = (t, d) => {
@@ -516,10 +536,10 @@ export const RunProvider = ({ children }) => {
       pace: formatPace(finalTime, finalDistance),
       calories: Math.round(finalCalories),
       date: new Date(),
-      path: routePath
+      path: finalPath  // ✅ clean lat/lng only, from ref
     };
 
-    console.log("Saving run:", newRun); // DEBUG
+    console.log("Saving run:", { time: finalTime, distance: finalDistance, pace: newRun.pace, calories: newRun.calories, pathPoints: finalPath.length });
 
     // ✅ Reset refs
     accumulatedTimeRef.current = 0;
@@ -527,6 +547,7 @@ export const RunProvider = ({ children }) => {
     lastKmRef.current = 0;
     lastSpeedsRef.current = [];
     lastLocationRef.current = null;
+    routePathRef.current = [];
 
     // Reset state
     setTime(0);
