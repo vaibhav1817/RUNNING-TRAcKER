@@ -163,7 +163,7 @@ export default function Profile() {
     };
 
     return (
-        <div className="page" style={{ justifyContent: 'flex-start', paddingTop: '20px', position: 'relative' }}>
+        <div className="page" style={{ justifyContent: 'flex-start', paddingTop: '20px', paddingBottom: '100px', position: 'relative', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
             <div className="header-section">
                 <h1 className="page-title">Profile</h1>
             </div>
@@ -268,7 +268,7 @@ export default function Profile() {
             </div>
 
             {/* Stats Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', width: '100%', marginTop: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', width: '100%', maxWidth: '400px', marginTop: '12px' }}>
                 <div className="card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
                     <span style={{ fontSize: '28px', fontWeight: '800', color: 'white', lineHeight: 1 }}>{totalDistance}</span>
                     <span style={{ fontSize: '13px', color: '#94a3b8' }}>Total km</span>
@@ -280,7 +280,7 @@ export default function Profile() {
             </div>
 
             {/* Gear Tracker Section */}
-            <div className="card" style={{ marginTop: '12px', padding: '16px' }}>
+            <div className="card" style={{ marginTop: '12px', padding: '16px', width: '100%', maxWidth: '400px', boxSizing: 'border-box' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                     <h3 style={{ fontSize: '16px', margin: 0, color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         👟 Gear Tracker
@@ -316,7 +316,7 @@ export default function Profile() {
             </div>
 
             {/* Account Actions */}
-            <div style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', maxWidth: '400px' }}>
                 <button
                     onClick={async () => {
                         if (window.confirm('Are you sure you want to log out?')) {

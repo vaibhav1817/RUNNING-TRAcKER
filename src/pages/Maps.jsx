@@ -5,6 +5,61 @@ import { formatTime } from "../utils/formatTime";
 import { Play, Pause, Square, Navigation, Layers } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 
+// ============================================================
+// 🧮 CATMULL-ROM SPLINE — Smooth curve interpolation
+//
+// GPS updates every 1-3 seconds, leaving large gaps between
+// points. Straight lines between these points look angular
+// on corners. This algorithm generates numSegments smooth
+// intermediate points between each pair of GPS fixes,
+// producing a curve that passes THROUGH every measured point.
+//
+// Same technique used by Strava for route display.
+// ============================================================
+const catmullRomToPoints = (points, numSegments = 8) => {
+    if (points.length < 2) return points.map(p => [p.lat, p.lng]);
+    // For 2-3 points, not enough context for spline — just return raw
+    if (points.length < 4) return points.map(p => [p.lat, p.lng]);
+
+    const result = [];
+
+    for (let i = 0; i < points.length - 1; i++) {
+        // Clamp endpoints: duplicate first/last point as phantom control points
+        const p0 = points[Math.max(0, i - 1)];
+        const p1 = points[i];
+        const p2 = points[i + 1];
+        const p3 = points[Math.min(points.length - 1, i + 2)];
+
+        for (let t = 0; t < numSegments; t++) {
+            const s  = t / numSegments;
+            const s2 = s * s;
+            const s3 = s2 * s;
+
+            // Catmull-Rom matrix formula (alpha = 0.5)
+            const lat = 0.5 * (
+                (2 * p1.lat) +
+                (-p0.lat + p2.lat) * s +
+                (2 * p0.lat - 5 * p1.lat + 4 * p2.lat - p3.lat) * s2 +
+                (-p0.lat + 3 * p1.lat - 3 * p2.lat + p3.lat) * s3
+            );
+            const lng = 0.5 * (
+                (2 * p1.lng) +
+                (-p0.lng + p2.lng) * s +
+                (2 * p0.lng - 5 * p1.lng + 4 * p2.lng - p3.lng) * s2 +
+                (-p0.lng + 3 * p1.lng - 3 * p2.lng + p3.lng) * s3
+            );
+
+            result.push([lat, lng]);
+        }
+    }
+
+    // Always include the final GPS point exactly
+    const last = points[points.length - 1];
+    result.push([last.lat, last.lng]);
+
+    return result;
+};
+
 // 🔹 Fix for default Leaflet marker icons wanting 404s
 import L from "leaflet";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -203,13 +258,21 @@ export default function Maps() {
     // Map Style State (Default: Dark)
     const [mapStyle, setMapStyle] = useState('dark');
 
-    // Helper to calculate pace (min/km) - Fallback / Average
+    // Helper to calculate pace — returns MM:SS string
     const calculatePace = () => {
-        if (status === 'running' && currentPace > 0) return currentPace.toFixed(2);
+        let paceMinKm = 0;
 
-        if (!distance || distance === 0) return "0.00";
-        const paceVal = time / 60 / distance; // min/km
-        return paceVal.toFixed(2);
+        if (status === 'running' && currentPace > 0) {
+            paceMinKm = currentPace;
+        } else if (distance > 0.01 && time > 0) {
+            paceMinKm = (time / 60) / distance; // average pace in min/km
+        }
+
+        if (paceMinKm <= 0 || paceMinKm > 30) return "–:––";
+
+        const mins = Math.floor(paceMinKm);
+        const secs = Math.round((paceMinKm - mins) * 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
     // Initial center (Default to a placeholder if no location yet)
@@ -323,8 +386,40 @@ export default function Maps() {
                     />
                 )}
 
-                {/* Run Path */}
-                {routePath.length > 0 && <Polyline positions={routePath.map(p => [p.lat, p.lng])} color="#3b82f6" weight={5} />}
+                {/* Run Path — Smooth Catmull-Rom Spline */}
+                {routePath.length > 1 && (() => {
+                    // Adaptive segmentation: reduce segments for long runs to maintain perf
+                    // ≤100 pts → 10 segs/pt | ≤300 → 7 | >300 → 5
+                    const segs = routePath.length <= 100 ? 10
+                                : routePath.length <= 300 ? 7
+                                : 5;
+                    const smoothed = catmullRomToPoints(routePath, segs);
+
+                    return (
+                        <>
+                            {/* Glow / halo layer (slightly wider, lower opacity) */}
+                            <Polyline
+                                positions={smoothed}
+                                color="#3b82f6"
+                                weight={10}
+                                opacity={0.25}
+                                smoothFactor={0}
+                                lineCap="round"
+                                lineJoin="round"
+                            />
+                            {/* Main solid line */}
+                            <Polyline
+                                positions={smoothed}
+                                color="#60a5fa"
+                                weight={4}
+                                opacity={0.95}
+                                smoothFactor={0}
+                                lineCap="round"
+                                lineJoin="round"
+                            />
+                        </>
+                    );
+                })()}
 
                 {/* Controller (Auto Recenter + Button) */}
                 <RecenterController location={location} />
@@ -410,7 +505,7 @@ export default function Maps() {
                 </div>
                 <div style={{ width: '1px', height: '30px', background: 'rgba(255,255,255,0.2)' }}></div>
                 <div style={{ textAlign: 'center' }}>
-                    <span style={{ fontSize: '12px', opacity: 0.7, display: 'block', letterSpacing: '0.5px' }}>PACE</span>
+                    <span style={{ fontSize: '12px', opacity: 0.7, display: 'block', letterSpacing: '0.5px' }}>MIN/KM</span>
                     <span style={{ fontSize: '24px', fontWeight: '700', fontFamily: 'system-ui, sans-serif', fontVariantNumeric: 'tabular-nums' }}>{calculatePace()}</span>
                 </div>
             </div>
